@@ -22,7 +22,7 @@ Before using this Docker environment, ensure you have:
 - **AI Provider Account**: Access to [Claude Code CLI](https://claude.ai/code) or your preferred provider
 - **Git** (optional): For cloning repositories into the workspace
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone or Download
 
