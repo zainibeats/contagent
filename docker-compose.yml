@@ -1,9 +1,9 @@
 services:
   claude:
     ## Option 1: Pull image from Dockerhub
-    image: skimming124/claude-code-docker
+    # image: skimming124/claude-code-docker
     ## Option 2: Build image from source
-    # build: .
+    build: .
     container_name: claude
     working_dir: /workspace
     volumes:

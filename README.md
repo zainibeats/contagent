@@ -12,6 +12,7 @@ This Docker configuration provides a minimal, isolated Node.js environment speci
 - Installs bash for POSIX shell compatibility
 - Automatically installs the latest `@anthropic-ai/claude-code` package (configurable)
 - Mounts your local project directory for seamless file access
+- Runs as a non-root `claude` user with proper workspace permissions via an entrypoint script
 - Provides an interactive shell session for development work
 
 ## Prerequisites
@@ -73,6 +74,16 @@ Once inside the container:
 claude
 ```
 
+## How It Works
+
+The container uses an **entrypoint script** (`entrypoint.sh`) to handle volume permissions at runtime. This is the standard Docker pattern for non-root containers with mounted volumes:
+
+1. Container starts as **root**
+2. `entrypoint.sh` sets ownership of `/workspace` to the `claude` user
+3. `su-exec` drops privileges and runs the shell as the `claude` user
+
+This ensures the `claude` user always has read/write access to your mounted project directory, regardless of host file ownership.
+
 ## Configuration
 
 ### Using Other AI Providers (e.g., Gemini CLI)
@@ -89,7 +100,7 @@ This environment is designed to be provider-agnostic. You can easily replace Cla
    ## Example: Installing Gemini CLI
    RUN npm install -g @google/gemini-cli
    ```
-> Optional: Change other instances of `claude` in Dockerfile to gemini 
+> Optional: Change other instances of `claude` in Dockerfile to gemini
 
 4. Rebuild the image: `docker compose build`
 
@@ -118,9 +129,15 @@ services:
 | `SHELL` | Shell environment | `/bin/bash` |
 | `NODE_ENV` | Node environment | `development` |
 
-### Volume Mounting
+### Project Structure
 
-The container mounts your local directory to `/workspace`:
+```
+claude-code-docker/
+├── Dockerfile          # Container image definition
+├── docker-compose.yml  # Service configuration
+├── entrypoint.sh       # Runtime permission handling & user switching
+└── README.md
+```
 
 ## Usage
 
