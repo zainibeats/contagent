@@ -8,11 +8,11 @@ This Docker configuration provides a minimal, isolated Node.js environment speci
 
 **What it does:**
 - Creates a lightweight Alpine Linux container with Node.js 24
-- Installs essential development tools: **Git**, **Python 3**, **Docker CLI**, **curl**, and **wget** (openssh-client disabled by default)
+- Installs essential development tools: **Git**, **Python 3**, **Docker CLI**, **curl**, and **ripgrep**
 - Installs bash for POSIX shell compatibility
 - Automatically installs the latest `@anthropic-ai/claude-code` package (configurable)
 - Mounts your local project directory for seamless file access
-- Runs as a non-root `claude` user with proper workspace permissions via an entrypoint script
+- Automatically matches the container user's UID/GID to the host user, so files created inside the container are owned by you on the host
 - Provides an interactive shell session for development work
 
 ## Prerequisites
@@ -74,17 +74,17 @@ Once inside the container:
 claude
 ```
 
-## How It Works
-
-The container uses an **entrypoint script** (`entrypoint.sh`) to handle volume permissions at runtime. This is the standard Docker pattern for non-root containers with mounted volumes:
-
-1. Container starts as **root**
-2. `entrypoint.sh` sets ownership of `/workspace` to the `claude` user
-3. `su-exec` drops privileges and runs the shell as the `claude` user
-
-This ensures the `claude` user always has read/write access to your mounted project directory, regardless of host file ownership.
-
 ## Configuration
+
+### UID/GID Matching
+
+The container automatically matches the `claude` user's UID/GID to your host user, so bind-mounted files have correct ownership on both sides. This works automatically on most systems via the `$UID` shell variable.
+
+To override for non-standard setups:
+
+```bash
+UID=1001 GID=1001 docker compose run claude
+```
 
 ### Using Other AI Providers (e.g., Gemini CLI)
 
@@ -126,6 +126,8 @@ services:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `HOST_UID` | UID for the container user (auto-set from host) | `1000` |
+| `HOST_GID` | GID for the container user (auto-set from host) | `1000` |
 | `SHELL` | Shell environment | `/bin/bash` |
 | `NODE_ENV` | Node environment | `development` |
 
@@ -135,7 +137,7 @@ services:
 claude-code-docker/
 ├── Dockerfile          # Container image definition
 ├── docker-compose.yml  # Service configuration
-├── entrypoint.sh       # Runtime permission handling & user switching
+├── entrypoint.sh       # Runtime UID/GID matching & user switching
 └── README.md
 ```
 
