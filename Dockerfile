@@ -14,7 +14,9 @@ ENV SHELL=/bin/bash \
     NODE_ENV=development \
     USE_BUILTIN_RIPGREP=0
 
-RUN addgroup -g 1000 claude && \
+RUN deluser --remove-home node && \
+    delgroup node && \
+    addgroup -g 1000 claude && \
     adduser -D -u 1000 -G claude -h /home/claude claude
 
 WORKDIR /workspace
