@@ -9,7 +9,8 @@ services:
     volumes:
       ## Replace `Path/To/Directory` with directory you want Claude Code to access
       - Path/To/Directory:/workspace
+    environment:
+      - HOST_UID=${UID:-1000}
+      - HOST_GID=${GID:-${UID:-1000}}
     tty: true
     stdin_open: true
-    environment:
-      - SHELL=/bin/bash
