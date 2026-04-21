@@ -12,14 +12,18 @@ RUN apk add --no-cache \
 
 ENV SHELL=/bin/bash \
     NODE_ENV=development \
-    USE_BUILTIN_RIPGREP=0
+    USE_BUILTIN_RIPGREP=0 \
+    AGENT_USER=agent
 
-RUN addgroup -g 1001 claude && \
-    adduser -D -u 1001 -G claude -h /home/claude claude
+RUN addgroup -g 1001 agent && \
+    adduser -D -u 1001 -G agent -h /home/agent agent
 
 WORKDIR /workspace
 
+## Install your preferred AI CLI tool (rebuild after changing):
 RUN npm install -g @anthropic-ai/claude-code
+## RUN npm install -g @openai/codex
+## RUN npm install -g @google/gemini-cli
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

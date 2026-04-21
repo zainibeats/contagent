@@ -1,16 +1,18 @@
 services:
-  claude:
+  contagent:
     ## Option 1: Pull image from Dockerhub
-    # image: skimming124/claude-code-docker
+    ## Tag Options: "claude-4.7" or "codex-5.4"
+    # image: skimming124/contagent:claude-4.7
     ## Option 2: Build image from source
     build: .
-    container_name: claude
+    container_name: contagent
     working_dir: /workspace
     volumes:
-      ## Replace `Path/To/Directory` with directory you want Claude Code to access
-      - Path/To/Directory:/workspace
+      ## Replace with the directory you want the agent to access
+      - ${PATH_TO_WORKSPACE}:/workspace
     environment:
       - HOST_UID=${UID:-1000}
       - HOST_GID=${GID:-${UID:-1000}}
+      - AGENT_USER=${AGENT_USER:-agent}
     tty: true
     stdin_open: true

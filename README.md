@@ -1,57 +1,41 @@
-# Claude Code Docker Environment
+# contagent
 
-A lightweight, reproducible Docker setup for running **Claude Code CLI** inside a Node.js 24 Alpine container with full POSIX shell support. While configured for Claude, this environment can be adapted to other AI tools (eg. Gemini CLI).
+A lightweight, provider-agnostic Docker environment for running AI coding agents (Claude Code, Codex, Gemini CLI, etc.) inside a Node.js 24 Alpine container.
 
 ## Overview
 
-This Docker configuration provides a minimal, isolated Node.js environment specifically designed for **Claude Code CLI**. It ensures the AI agent runs correctly inside a container with proper POSIX shell support, enabling AI-assisted development while keeping your host system clean and secure.
-
 **What it does:**
-- Creates a lightweight Alpine Linux container with Node.js 24
-- Installs essential development tools: **Git**, **Python 3**, **Docker CLI**, **curl**, and **ripgrep**
-- Installs bash for POSIX shell compatibility
-- Automatically installs the latest `@anthropic-ai/claude-code` package (configurable)
+- Creates a minimal Alpine Linux container with Node.js 24
+- Installs essential dev tools: Git, Python 3, Docker CLI, curl, ripgrep
+- Automatically matches the container user's UID/GID to your host user so bind-mounted files have correct ownership
 - Mounts your local project directory for seamless file access
-- Automatically matches the container user's UID/GID to the host user, so files created inside the container are owned by you on the host
-- Provides an interactive shell session for development work
+- Provides an interactive shell session
 
 ## Prerequisites
 
-Before using this Docker environment, ensure you have:
-
 - **Docker & Docker Compose**: [Install Docker Desktop](https://docs.docker.com/get-docker/) or Docker Engine
-- **AI Provider Account**: Access to [Claude Code CLI](https://claude.ai/code) or your preferred provider
-- **Git** (optional): For cloning repositories into the workspace
+- **AI Provider Account**: Access to your preferred CLI tool (Claude Code, Codex, etc.)
 
 ## Quick Start
 
-### 1. Clone or Download
+### 1. Clone
 
 ```bash
-## Clone this repository
-## Or download the files directly to your project directory
-git clone https://github.com/zainibeats/claude-code-docker
-cd claude-code-docker
+git clone https://github.com/zainibeats/contagent
+cd contagent
 ```
 
-### 2. Configure Project Path
+### 2. Configure
 
-Edit `docker-compose.yml` and replace `Path/To/Directory` with your actual project path:
+Copy `.env.example` to `.env` and set your workspace path:
 
-```yaml
-volumes:
-  ## Replace with your local project directory
-  - Path/To/Directory:/workspace
+```bash
+cp .env.example .env
 ```
 
-**Examples:**
-```yaml
-## For Linux/macOS
-- /home/user/my-project:/workspace
-- /Users/john/documents/coding/my-app:/workspace
-
-## For Windows
-- C:\Users\John\Projects\my-app:/workspace
+Edit `.env`:
+```
+PATH_TO_WORKSPACE=/home/user/my-project
 ```
 
 ### 3. Build and Run
@@ -59,85 +43,78 @@ volumes:
 ```bash
 ## Build the Docker image
 docker compose build
-```
-```bash
-## Start interactive session
-docker compose run claude
+
+## Start an interactive session
+docker compose run contagent
 ```
 
-### 4. Start Claude
-
-Once inside the container:
+### 4. Use your agent
 
 ```bash
-## Initialize or use Claude Code
+## Default: Claude Code
 claude
+
+## Or whichever CLI you installed
+codex
+gemini
 ```
 
 ## Configuration
 
-### UID/GID Matching
+### Switching AI Providers
 
-The container automatically matches the `claude` user's UID/GID to your host user, so bind-mounted files have correct ownership on both sides. This works automatically on most systems via the `$UID` shell variable.
+Edit `Dockerfile` to install your preferred tool, then rebuild:
 
-To override for non-standard setups:
+```dockerfile
+## Install your preferred AI CLI tool (rebuild after changing):
+RUN npm install -g @anthropic-ai/claude-code
+## RUN npm install -g @openai/codex
+## RUN npm install -g @google/gemini-cli
+```
 
 ```bash
-UID=1001 GID=1001 docker compose run claude
+docker compose build
 ```
 
-### Using Other AI Providers (e.g., Gemini CLI)
+### Pre-built Images (Docker Hub)
 
-This environment is designed to be provider-agnostic. You can easily replace Claude Code with any other CLI tool available on npm (like Gemini CLI).
+Pull a pre-built image instead of building from source by uncommenting the `image:` line in `docker-compose.yml`:
 
-1. Open `Dockerfile`
-2. Locate the installation command:
-   ```dockerfile
-   RUN npm install -g @anthropic-ai/claude-code
-   ```
-3. Replace it with your preferred package:
-   ```dockerfile
-   ## Example: Installing Gemini CLI
-   RUN npm install -g @google/gemini-cli
-   ```
-> Optional: Change other instances of `claude` in Dockerfile to gemini
-
-4. Rebuild the image: `docker compose build`
-
-### Docker Compose Options
-
-**Option 1: Use Pre-built Image (Recommended)**
 ```yaml
 services:
-  claude:
-    image: skimming124/claude-code-docker  ## Pull from registry
-    ## ... rest of config
+  contagent:
+    image: skimming124/contagent:claude-4.7   ## Claude Code 4.7
+    # image: skimming124/contagent:codex-5.4  ## Codex 5.4
 ```
 
-**Option 2: Build from Source**
-```yaml
-services:
-  claude:
-    build: .  ## Build using local Dockerfile
-    ## ... rest of config
-```
+| Tag | Tool |
+|-----|------|
+| `claude-4.7` | Claude Code 4.7 |
+| `codex-5.4` | OpenAI Codex 5.4 |
 
 ### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HOST_UID` | UID for the container user (auto-set from host) | `1000` |
-| `HOST_GID` | GID for the container user (auto-set from host) | `1000` |
-| `SHELL` | Shell environment | `/bin/bash` |
-| `NODE_ENV` | Node environment | `development` |
+| `PATH_TO_WORKSPACE` | Host path to mount as `/workspace` | *(required)* |
+| `HOST_UID` | UID for the container user | `1000` |
+| `HOST_GID` | GID for the container user | `1000` |
+| `AGENT_USER` | Container username | `agent` |
+
+To override UID/GID or username at runtime:
+
+```bash
+UID=1001 GID=1001 AGENT_USER=myuser docker compose run contagent
+```
 
 ### Project Structure
 
 ```
-claude-code-docker/
+contagent/
 ├── Dockerfile          # Container image definition
 ├── docker-compose.yml  # Service configuration
 ├── entrypoint.sh       # Runtime UID/GID matching & user switching
+├── .env.example        # Environment variable template
 └── README.md
 ```
 
@@ -146,16 +123,17 @@ claude-code-docker/
 ### Basic Workflow
 
 ```bash
-## 1. Build the image (one time)
+## 1. Build (one time)
 docker compose build
 
 ## 2. Start container
-docker compose run claude
+docker compose run contagent
 
-## 3. Use the CLI (claude, gemini, etc.)
+## 3. Run your agent
 claude
 
-## 4. Exit with Ctrl+D or 'exit'
+## 4. Exit
+exit
 ```
 
 ### Container Management
@@ -165,14 +143,11 @@ claude
 docker ps
 
 ## Stop container
-docker stop claude
-
-## Restart container (preserves state)
-docker start -ai claude
+docker stop contagent
 
 ## Remove container
-docker rm claude
+docker rm contagent
 
 ## Remove image
-docker rmi skimming124/claude-code-docker
+docker rmi skimming124/contagent
 ```
