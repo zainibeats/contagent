@@ -84,13 +84,13 @@ Pull a pre-built image instead of building from source by uncommenting the `imag
 services:
   contagent:
     image: skimming124/contagent:claude-4.7   ## Claude Code 4.7
-    # image: skimming124/contagent:codex-5.4  ## Codex 5.4
+    # image: skimming124/contagent:codex-5.5  ## Codex 5.5
 ```
 
 | Tag | Tool |
 |-----|------|
 | `claude-4.7` | Claude Code 4.7 |
-| `codex-5.4` | OpenAI Codex 5.4 |
+| `codex-5.5` | OpenAI Codex 5.5 |
 
 ### Environment Variables
 
