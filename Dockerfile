@@ -8,8 +8,9 @@ RUN apk add --no-cache \
     docker-cli \
     su-exec \
     shadow \
-    ripgrep \
+    ripgrep
     ## Uncommend for Codex
+    # ripgrep \
     # bubblewrap
 
 ENV SHELL=/bin/bash \
