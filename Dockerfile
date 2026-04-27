@@ -8,7 +8,9 @@ RUN apk add --no-cache \
     docker-cli \
     su-exec \
     shadow \
-    ripgrep
+    ripgrep \
+    ## Uncommend for Codex
+    # bubblewrap
 
 ENV SHELL=/bin/bash \
     NODE_ENV=development \
@@ -22,8 +24,8 @@ WORKDIR /workspace
 
 ## Install your preferred AI CLI tool (rebuild after changing):
 RUN npm install -g @anthropic-ai/claude-code
-## RUN npm install -g @openai/codex
-## RUN npm install -g @google/gemini-cli
+# RUN npm install -g @openai/codex
+# RUN npm install -g @google/gemini-cli
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
